@@ -25,10 +25,11 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 
 	using Microsoft.Extensions.DependencyInjection;
 
-	public abstract class WindsorServiceProviderFactoryBase : IServiceProviderFactory<IWindsorContainer>
+	public abstract class WindsorServiceProviderFactoryBase : IServiceProviderFactory<IWindsorContainer>, IDisposable
 	{
 		internal ExtensionContainerRootScope rootScope;
 		protected IWindsorContainer rootContainer;
+		private bool ownsRootContainer;
 
 		public virtual IWindsorContainer Container => rootContainer;
 
@@ -49,6 +50,7 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 
 		protected virtual void CreateRootContainer()
 		{
+			ownsRootContainer = true;
 			SetRootContainer(new WindsorContainer());
 		}
 
@@ -119,7 +121,7 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 					.LifestyleSingleton());
 		}
 
-		protected virtual void RegisterServiceCollection(IServiceCollection serviceCollection,IWindsorContainer container)
+		protected virtual void RegisterServiceCollection(IServiceCollection serviceCollection, IWindsorContainer container)
 		{
 			foreach (var service in serviceCollection)
 			{
@@ -132,6 +134,15 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 			rootContainer.Kernel.Resolver.AddSubResolver(new RegisteredCollectionResolver(rootContainer.Kernel));
 			rootContainer.Kernel.Resolver.AddSubResolver(new OptionsSubResolver(rootContainer.Kernel));
 			rootContainer.Kernel.Resolver.AddSubResolver(new LoggerDependencyResolver(rootContainer.Kernel));
+		}
+
+		public void Dispose()
+		{
+			rootScope?.Dispose();
+			if (ownsRootContainer)
+			{
+				rootContainer?.Dispose();
+			}
 		}
 	}
 }

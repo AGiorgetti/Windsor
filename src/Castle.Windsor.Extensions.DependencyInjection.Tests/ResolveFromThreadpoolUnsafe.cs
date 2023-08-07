@@ -103,9 +103,12 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Tests {
 			var f = new WindsorServiceProviderFactory(container);
 			f.CreateBuilder(serviceProvider);
 
+			// creating a service provider here will be troublesome too
+			IServiceProvider sp = f.CreateServiceProvider(container);
+
 			container.Register(
 				// Component.For<IUserService>().ImplementedBy<UserService>().LifestyleNetTransient(),
-				Classes.FromThisAssembly().BasedOn<IUserService>().WithServiceAllInterfaces().LifestyleNetStatic()
+				Classes.FromThisAssembly().BasedOn<IUserService>().WithServiceAllInterfaces().LifestyleNetTransient()
 				);
 
 			TaskCompletionSource<IUserService> tcs = new TaskCompletionSource<IUserService>();
@@ -113,9 +116,9 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Tests {
 			ThreadPool.UnsafeQueueUserWorkItem(state => {
 				IUserService actualUserService = null;
 				try {
-					// creating a service provider here will be troublesome too
-					IServiceProvider sp = f.CreateServiceProvider(container);
-
+					// this transient instance end up being tied to the rootscope, which is not really when you want
+					// cause in this implementation if will be disposed when the root container is disposed
+					// not really a good thing (castle windsor might track those instances too).
 					actualUserService = sp.GetService<IUserService>();
 					Assert.NotNull(actualUserService);
 				}

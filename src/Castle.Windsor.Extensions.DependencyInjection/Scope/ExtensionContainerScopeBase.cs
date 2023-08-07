@@ -15,12 +15,12 @@
 namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 {
 	using System;
-	
+
 	using Castle.Core;
 	using Castle.MicroKernel;
 	using Castle.MicroKernel.Lifestyle.Scoped;
 
-	internal  abstract class ExtensionContainerScopeBase : ILifetimeScope
+	internal abstract class ExtensionContainerScopeBase : ILifetimeScope
 	{
 		public static readonly string TransientMarker = "Transient";
 		private readonly IScopeCache scopeCache;
@@ -29,8 +29,6 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 		{
 			scopeCache = new ScopeCache();
 		}
-
-		internal virtual ExtensionContainerScopeBase RootScope { get; set; }
 
 		public virtual void Dispose()
 		{
@@ -47,7 +45,7 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 				// Add transient's burden to scope so it gets released
 				if (model.Configuration.Attributes.Get(TransientMarker) == bool.TrueString)
 				{
-					var transientBurden = createInstance(_ => {});
+					var transientBurden = createInstance(_ => { });
 					scopeCache[transientBurden] = transientBurden;
 					return transientBurden;
 				}
@@ -57,7 +55,7 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 				{
 					return scopedBurden;
 				}
-				scopedBurden = createInstance((_) => {});
+				scopedBurden = createInstance((_) => { });
 				scopeCache[model] = scopedBurden;
 				return scopedBurden;
 			}

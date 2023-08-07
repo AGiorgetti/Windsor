@@ -14,16 +14,23 @@
 
 namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 {
+	/// <summary>
+	/// There should be just one root scope per container.
+	/// It is used to check if we can decommission the container during <see cref="WindsorScopedServiceProvider"/>
+	/// </summary>
 	internal class ExtensionContainerRootScope : ExtensionContainerScopeBase
 	{
-		
+		internal static ExtensionContainerRootScope RootScope { get; private set; }
+
+		private ExtensionContainerRootScope()
+		{ }
+
 		public static ExtensionContainerRootScope BeginRootScope()
 		{
 			var scope = new ExtensionContainerRootScope();
 			ExtensionContainerScopeCache.Current = scope;
+			RootScope = scope;
 			return scope;
 		}
-
-		internal override ExtensionContainerScopeBase RootScope => this;
 	}
 }
