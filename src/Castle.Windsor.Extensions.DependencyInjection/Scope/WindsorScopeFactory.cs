@@ -16,7 +16,7 @@
 namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 {
 	using System;
-
+	using Castle.MicroKernel;
 	using Castle.Windsor;
 
 	using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +24,7 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 	internal class WindsorScopeFactory : IServiceScopeFactory
 	{
 		private readonly IWindsorContainer scopeFactoryContainer;
-		
+
 		public WindsorScopeFactory(IWindsorContainer container)
 		{
 			scopeFactoryContainer = container;
@@ -32,12 +32,14 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 
 		public IServiceScope CreateScope()
 		{
-			var scope = ExtensionContainerScope.BeginScope();
+			var scopeId = Guid.NewGuid().ToString();
 
 			//since WindsorServiceProvider is scoped, this gives us new instance
-			var provider = scopeFactoryContainer.Resolve<IServiceProvider>();
+			var args = new Arguments();
+			args.AddNamed("scopeId", scopeId);
+			var provider = scopeFactoryContainer.Resolve<IServiceProvider>(args);
 
-			return new ServiceScope(scope, provider);
+			return new ServiceScope(scopeId, provider);
 		}
 	}
 }

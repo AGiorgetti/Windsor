@@ -16,27 +16,21 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 {
 	internal class ExtensionContainerScope : ExtensionContainerScopeBase
 	{
-		private readonly ExtensionContainerScopeBase parent;
+		private readonly string scopeId;
 
-		protected ExtensionContainerScope()
+		protected ExtensionContainerScope(string scopeId)
 		{
-			parent = ExtensionContainerScopeCache.Current;
-		}
-
-		internal static ExtensionContainerScopeBase BeginScope()
-		{
-			var scope = new ExtensionContainerScope();
-			ExtensionContainerScopeCache.Current = scope;
-			return scope;
-		}
-
-		public override void Dispose()
-		{
-			if (ExtensionContainerScopeCache.current.Value == this)
+			if (string.IsNullOrWhiteSpace(scopeId))
 			{
-				ExtensionContainerScopeCache.current.Value = parent;
+				throw new System.ArgumentException($"'{nameof(scopeId)}' cannot be null or whitespace.", nameof(scopeId));
 			}
-			base.Dispose();
+
+			this.scopeId = scopeId;
+		}
+
+		internal static ExtensionContainerScopeBase BeginScope(string scopeId)
+		{
+			return new ExtensionContainerScope(scopeId);
 		}
 	}
 }

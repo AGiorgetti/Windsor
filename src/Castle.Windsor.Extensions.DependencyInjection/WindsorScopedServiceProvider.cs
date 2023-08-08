@@ -18,50 +18,68 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 	using System;
 	using System.Collections.Generic;
 	using System.Reflection;
-
+	using Castle.MicroKernel;
 	using Castle.Windsor;
-	using Castle.Windsor.Extensions.DependencyInjection.Scope;
 
 	using Microsoft.Extensions.DependencyInjection;
 
-	internal class WindsorScopedServiceProvider : IServiceProvider, ISupportRequiredService
+	internal class RootWinsorServiceProvider : WindsorScopedServiceProvider
 	{
-		private readonly ExtensionContainerScopeBase scope;
+		public RootWinsorServiceProvider(IWindsorContainer container) : base(container, "root")
+		{
+		}
+	}
 
+	internal class WindsorScopedServiceProvider : IServiceProvider, ISupportRequiredService, IDisposable
+	{
 		private readonly IWindsorContainer container;
+		private readonly string scopeId;
+		private bool disposing;
 
-		public WindsorScopedServiceProvider(IWindsorContainer container)
+		public WindsorScopedServiceProvider(IWindsorContainer container, string scopeId)
 		{
 			this.container = container;
-			scope = ExtensionContainerScopeCache.Current;
+			this.scopeId = scopeId;
 		}
 
 		public object GetService(Type serviceType)
 		{
-			using (_ = new ForcedScope(scope))
-			{
-				return ResolveInstanceOrNull(serviceType, true);
-			}
+			return ResolveInstanceOrNull(serviceType, true);
 		}
 
 		public object GetRequiredService(Type serviceType)
 		{
-			using (_ = new ForcedScope(scope))
+			return ResolveInstanceOrNull(serviceType, false);
+		}
+
+		public void Dispose()
+		{
+			if (scopeId == "root")
 			{
-				return ResolveInstanceOrNull(serviceType, false);
+				if (!disposing)
+				{
+					disposing = true;
+					// i'm not really sure we should dispose the container if it comes from outside
+					container.Dispose();
+				}
 			}
 		}
 
 		private object ResolveInstanceOrNull(Type serviceType, bool isOptional)
 		{
+			var args = new Arguments
+			{
+				{ "scopeId", scopeId }
+			};
+
 			if (container.Kernel.HasComponent(serviceType))
 			{
-				return container.Resolve(serviceType);
+				return container.Resolve(serviceType, args);
 			}
 
 			if (serviceType.GetTypeInfo().IsGenericType && serviceType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
 			{
-				var allObjects = container.ResolveAll(serviceType.GenericTypeArguments[0]);
+				var allObjects = container.ResolveAll(serviceType.GenericTypeArguments[0], args);
 				return allObjects;
 			}
 
@@ -70,7 +88,7 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 				return null;
 			}
 
-			return container.Resolve(serviceType);
+			return container.Resolve(serviceType, args);
 		}
 	}
 }

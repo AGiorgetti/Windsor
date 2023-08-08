@@ -14,18 +14,35 @@
 
 namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 {
+	using Castle.MicroKernel.Lifestyle.Scoped;
 	using System;
-	using System.Threading;
+	using System.Collections.Concurrent;
 
 	internal static class ExtensionContainerScopeCache
 	{
-		internal static readonly AsyncLocal<ExtensionContainerScopeBase> current = new AsyncLocal<ExtensionContainerScopeBase>();
-		/// <summary>Current scope for the thread. Initial scope will be set when calling BeginRootScope from a ExtensionContainerRootScope instance.</summary>
-		/// <exception cref="InvalidOperationException">Thrown when there is no scope available.</exception>
-		internal static ExtensionContainerScopeBase Current
+		private static readonly ConcurrentDictionary<string, ILifetimeScope> collection = new ConcurrentDictionary<string, ILifetimeScope>();
+
+		internal static ILifetimeScope GetOrAdd(string scopeId, Func<string, ILifetimeScope> valueFactory)
 		{
-			get => current.Value; // ?? throw new InvalidOperationException("No scope available");
-			set => current.Value = value;
+			return collection.GetOrAdd(scopeId, valueFactory);
+		}
+
+		internal static void Dispose(string scopeId)
+		{
+			if (collection.TryGetValue(scopeId, out var scope))
+			{
+				scope.Dispose();
+				collection.TryRemove(scopeId, out _);
+			}
+		}
+
+		internal static void Dispose()
+		{
+			foreach (var scope in collection)
+			{
+				scope.Value.Dispose();
+			}
+			collection.Clear();
 		}
 	}
 }

@@ -27,7 +27,6 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 
 	public abstract class WindsorServiceProviderFactoryBase : IServiceProviderFactory<IWindsorContainer>, IDisposable
 	{
-		internal ExtensionContainerRootScope rootScope;
 		protected IWindsorContainer rootContainer;
 		private bool ownsRootContainer;
 
@@ -40,12 +39,9 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 
 		public virtual IServiceProvider CreateServiceProvider(IWindsorContainer container)
 		{
-			return container.Resolve<IServiceProvider>();
-		}
-
-		protected virtual void CreateRootScope()
-		{
-			rootScope = ExtensionContainerRootScope.BeginRootScope();
+			var args = new Arguments();
+			args.AddNamed("scopeId", "root");
+			return container.Resolve<IServiceProvider>(args);
 		}
 
 		protected virtual void CreateRootContainer()
@@ -113,7 +109,6 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 			container.Register(Component
 					.For<IServiceScopeFactory>()
 					.ImplementedBy<WindsorScopeFactory>()
-					.DependsOn(Dependency.OnValue<ExtensionContainerRootScope>(rootScope))
 					.LifestyleSingleton(),
 				Component
 					.For<IServiceProviderFactory<IWindsorContainer>>()
@@ -138,7 +133,6 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 
 		public void Dispose()
 		{
-			rootScope?.Dispose();
 			if (ownsRootContainer)
 			{
 				rootContainer?.Dispose();

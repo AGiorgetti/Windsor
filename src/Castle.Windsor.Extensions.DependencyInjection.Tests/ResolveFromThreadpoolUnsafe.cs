@@ -64,7 +64,7 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Tests {
 
 			container.Register(
 				// Component.For<IUserService>().ImplementedBy<UserService>().LifestyleNetTransient(),
-				Classes.FromThisAssembly().BasedOn<IUserService>().WithServiceAllInterfaces().LifestyleNetStatic()
+				Classes.FromThisAssembly().BasedOn<IUserService>().WithServiceAllInterfaces().LifestyleSingleton()
 				);
 
 			IUserService actualUserService;

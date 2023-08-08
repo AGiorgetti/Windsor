@@ -21,11 +21,13 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 	{
 		public ILifetimeScope GetScope(CreationContext context)
 		{
-			return ExtensionContainerScopeCache.Current;
+			var scopeId = context.AdditionalArguments["scopeId"] as string;
+			return ExtensionContainerScopeCache.GetOrAdd(scopeId, scopeId => ExtensionContainerScope.BeginScope(scopeId));
 		}
 
 		public void Dispose()
 		{
+			ExtensionContainerScopeCache.Dispose();
 		}
 	}
 }

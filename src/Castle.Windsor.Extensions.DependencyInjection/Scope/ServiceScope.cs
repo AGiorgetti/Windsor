@@ -20,11 +20,16 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 
 	internal class ServiceScope : IServiceScope
 	{
-		private readonly IDisposable scope;
+		private readonly string scopeId;
 
-		public ServiceScope(IDisposable windsorScope, IServiceProvider serviceProvider)
+		public ServiceScope(string scopeId, IServiceProvider serviceProvider)
 		{
-			scope = windsorScope ?? throw new ArgumentNullException(nameof(scope));
+			if (string.IsNullOrWhiteSpace(scopeId))
+			{
+				throw new ArgumentException($"'{nameof(scopeId)}' cannot be null or whitespace.", nameof(scopeId));
+			}
+
+			this.scopeId = scopeId;
 			ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 		}
 
@@ -32,7 +37,7 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 
 		public void Dispose()
 		{
-			scope.Dispose();
+			ExtensionContainerScopeCache.Dispose(scopeId);
 		}
 	}
 }
