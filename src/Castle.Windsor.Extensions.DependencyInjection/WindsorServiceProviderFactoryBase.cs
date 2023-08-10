@@ -39,9 +39,10 @@ namespace Castle.Windsor.Extensions.DependencyInjection
 
 		public virtual IServiceProvider CreateServiceProvider(IWindsorContainer container)
 		{
-			var args = new Arguments();
-			args.AddNamed("scopeId", "root");
-			return container.Resolve<IServiceProvider>(args);
+			return new WindsorScopedServiceProvider(container, "root");
+			// var args = new Arguments();
+			// args.AddNamed("scopeId", "root");
+			// return container.Resolve<IServiceProvider>(args);
 		}
 
 		protected virtual void CreateRootContainer()

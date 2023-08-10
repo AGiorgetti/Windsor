@@ -35,9 +35,11 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 			var scopeId = Guid.NewGuid().ToString();
 
 			//since WindsorServiceProvider is scoped, this gives us new instance
-			var args = new Arguments();
-			args.AddNamed("scopeId", scopeId);
-			var provider = scopeFactoryContainer.Resolve<IServiceProvider>(args);
+			var provider = new WindsorScopedServiceProvider(scopeFactoryContainer, scopeId);
+
+			//var args = new Arguments();
+			//args.AddNamed("scopeId", scopeId);
+			//var provider = scopeFactoryContainer.Resolve<IServiceProvider>(args);
 
 			return new ServiceScope(scopeId, provider);
 		}

@@ -38,6 +38,7 @@ namespace Castle.Windsor.Extensions.DependencyInjection.Scope
 		public void Dispose()
 		{
 			ExtensionContainerScopeCache.Dispose(scopeId);
+			(ServiceProvider as IDisposable).Dispose();
 		}
 	}
 }
